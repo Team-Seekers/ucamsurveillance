@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verification</title>
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script>tailwind.config={theme:{extend:{colors:{primary:'#ff3b30',secondary:''},borderRadius:{'none':'0px','sm':'4px',DEFAULT:'8px','md':'12px','lg':'16px','xl':'20px','2xl':'24px','3xl':'32px','full':'9999px','button':'8px'}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+<style>
+
+    .custom-alert {
+  background-color: #1c1c28;
+  color: #ffffff;
+  border-left: 4px solid #ff3c38;
+  padding: 16px 20px;
+  margin: 20px 0;
+  border-radius: 8px;
+  font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+
+  position: fixed; /* Fix position to the bottom of the screen */
+  left: 50%; /* Center horizontally */
+  bottom: 20px; /* 20px from the bottom */
+  transform: translateX(-50%) translateY(0); /* Adjust to center correctly */
+}
+
+.custom-alert.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+:where([class^="ri-"])::before { content: "\f3c2"; }
+body {
+background-color: #111827;
+background-image: linear-gradient(rgba(26, 32, 44, 0.8) 1px, transparent 1px),
+linear-gradient(90deg, rgba(26, 32, 44, 0.8) 1px, transparent 1px);
+background-size: 20px 20px;
+height: 100vh;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+#otp {
+width: 100%;
+background-color: #1f2937;
+border: none;
+color: white;
+padding: 14px;
+border-radius: 8px;
+font-size: 16px;
+outline: none;
+}
+#otp:focus {
+box-shadow: 0 0 0 2px rgba(255, 59, 48, 0.3);
+}
+</style>
+</head>
+<body>
+<div class="w-full max-w-md px-6 py-8">
+<div class="flex flex-col items-center mb-8">
+<div class="flex items-center justify-center text-primary mb-4">
+<div class="w-12 h-12 flex items-center justify-center">
+<i class="ri-camera-line ri-3x"></i>
+</div>
+<span class="font-['Pacifico'] text-4xl ml-2">Ucam</span>
+</div>
+</div>
+<div class="mb-8">
+<h1 class="text-white text-2xl font-semibold text-center">Email Verification</h1>
+</div>
+
+<form method="post">
+<div class="space-y-5">
+            <% if (messeage && messeage.type == "danger") { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert" 
+                    style="color: #ff4d4f;  font-weight: bold; margin-bottom: 10px; font-size: 20px; ">
+                        <%= messeage.notify %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+                    style="filter: invert(1) brightness(2);"></button>
+                </div>
+            <% } %>
+            </div>
+<div class="mb-6">
+<h2 class="text-white text-xl font-medium mb-2">Enter Email</h2>
+<p class="text-gray-400 text-sm mb-4">Please enter your email address to receive verification code</p>
+<div class="flex items-center bg-[#1f2937] !rounded-button mb-6">
+<div class="w-12 h-12 flex items-center justify-center text-gray-400">
+<i class="ri-mail-line ri-lg"></i>
+</div>
+<input type="email" id="email" placeholder="Enter your email" class="w-full bg-transparent text-white px-2 py-3 border-none outline-none text-sm" required name = "email">
+</div>
+</div>
+<button id="createaccount" class="w-full bg-primary text-white py-3 font-medium !rounded-button whitespace-nowrap">Send Code</button>
+</div>
+</form>
+
+<div id="custom-alert" class="custom-alert">
+    <span class="alert-icon">!</span>
+    <span class="alert-message" id="alert-message">This is an alert</span>
+    <button class="close-alert" onclick="hideAlert()">&times;</button>
+</div>
+
+
+
+<!-- <script>
+      function showAlert(message) {
+  const alertBox = document.getElementById('custom-alert');
+  const alertMessage = document.getElementById('alert-message');
+
+  alertMessage.textContent = message;
+  alertBox.classList.add('show');
+
+
+}
+
+function hideAlert() {
+  const alertBox = document.getElementById('custom-alert');
+  alertBox.classList.remove('show');
+}
+
+document.getElementById('createaccount').addEventListener('click',()=>{
+    const email=document.getElementById('email').value;
+   
+    fetch('http://localhost:3000/resendotp',{
+        method:'POST',
+        headers:{
+            'Content-Type':'application/json'
+        },
+        body:JSON.stringify({email})
+    })
+    .then(res=>res.json())
+    .then(data=>{
+        if(data.message==='successful'){
+            window.location.href='http://localhost:3000/OTP.html'
+        }
+        else{
+            showAlert(data.message);
+        }
+    })
+    .catch(err=>{
+        showAlert('Error');
+    })
+})
+
+
+document.addEventListener('DOMContentLoaded', function() {
+const emailInput = document.getElementById('email');
+emailInput.addEventListener('focus', function() {
+this.placeholder = '';
+});
+emailInput.addEventListener('blur', function() {
+if (!this.value) {
+this.placeholder = 'Enter your email';
+}
+});
+});
+</script> -->
+</body>
+</html>
+
+
+
+     

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Security Camera Dashboard</title>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { primary: "#ff3b30", secondary: "#0a0e17" },
+            borderRadius: {
+              none: "0px",
+              sm: "4px",
+              DEFAULT: "8px",
+              md: "12px",
+              lg: "16px",
+              xl: "20px",
+              "2xl": "24px",
+              "3xl": "32px",
+              full: "9999px",
+              button: "8px",
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css"
+    />
+    <style>
+      body {
+        background-color: #0a0e17;
+        color: #fff;
+      }
+
+      .status-card {
+        background-color: #131824;
+        border-radius: 8px;
+      }
+
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+      }
+
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #2d3748;
+        transition: 0.4s;
+        border-radius: 24px;
+      }
+
+      .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+
+      input:checked + .toggle-slider {
+        background-color: #ff3b30;
+      }
+
+      input:checked + .toggle-slider:before {
+        transform: translateX(20px);
+      }
+
+      /* Styles for the toast notifications */
+      .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px; /* Space between toasts */
+      }
+
+      /* Basic toast style, further styled by JS with Tailwind classes */
+      .toast {
+          min-width: 250px;
+          opacity: 0.95;
+      }
+
+      .modal-overlay {
+        display: none; /* Controlled by JS, will be flex when shown */
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.75);
+        z-index: 50;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-content {
+        background-color: #131824;
+        padding: 24px;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 480px;
+      }
+
+      .camera-feed {
+        aspect-ratio: 16/9;
+        background-color: #000;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <div id="toastContainer" class="toast-container"></div>
+    <header
+      class="bg-[#0f1219] px-6 py-4 flex justify-between items-center border-b border-gray-800"
+    >
+      <div class="flex items-center">
+        <div
+          class="w-8 h-8 bg-primary rounded-full flex items-center justify-center mr-2"
+        >
+          <i class="ri-camera-fill text-white ri-lg"></i>
+        </div>
+        <h1 class="text-xl font-['Pacifico'] text-primary">ucam</h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <div
+          class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-800"
+        >
+          <div
+            class="w-6 h-6 bg-gray-600 rounded-full flex items-center justify-center"
+          >
+            <i class="ri-user-line text-white"></i>
+          </div>
+          <span class="text-sm text-gray-300"><%= userdetails.name %></span>
+        </div>
+        <button
+          class="flex items-center gap-1 text-sm text-gray-400 hover:text-white"
+        >
+          <i class="ri-logout-box-line"></i>
+          <span onclick="window.location.href='/logout'">Logout</span>
+        </button>
+      </div>
+    </header>
+    <div
+      class="container mx-auto px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6"
+    >
+      <div class="lg:col-span-2 space-y-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div
+              class="w-8 h-8 bg-primary rounded-full flex items-center justify-center"
+            >
+              <i class="ri-camera-fill text-white"></i>
+            </div>
+            <h2 class="text-xl font-semibold">Live Camera Feed</h2> </div>
+          <div class="flex items-center gap-2">
+            <span id="cameraStatusText" class="text-sm text-green-400"
+              >• Online</span
+            >
+            <label class="toggle-switch">
+              <input type="checkbox" id="cameraToggle" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="relative">
+          <div class="text-sm text-gray-400 mb-2">20117 Vision - Scmela</div>
+          <div class="camera-feed rounded overflow-hidden relative">
+            <video
+              id="cameraFeed"
+              autoplay
+              playsinline
+              class="w-full h-full object-cover"
+            ></video>
+            <img
+              id="noConnectionFeed"
+              src="https://readdy.ai/api/search-image?query=security%20camera%20no%20signal%20screen%2C%20static%20noise%20pattern%2C%20black%20and%20white%20tv%20static%2C%20disconnected%20cctv%20camera%20placeholder%2C%20digital%20noise&width=800&height=450&seq=2&orientation=landscape"
+              alt="No Connection"
+              class="w-full h-full object-cover hidden"
+            />
+            <button
+              class="absolute bottom-4 right-4 w-10 h-10 bg-black/50 rounded flex items-center justify-center hover:bg-black/70"
+            >
+              <i class="ri-fullscreen-line text-white ri-lg"></i>
+            </button>
+          </div>
+          <div class="mt-2 flex items-center justify-between">
+            <div class="flex items-center gap-1 text-sm text-gray-400">
+              <span>Front Door Camera</span>
+              <span class="mx-1">•</span>
+              <i class="ri-time-line text-xs"></i>
+              <span id="currentTime"></span>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mt-4">
+            <div class="status-card p-4">
+              <div class="text-sm text-gray-400 mb-1">Last Updated</div> <div class="font-semibold" id="lastConnectionTime">Just now</div>
+            </div>
+            <div class="status-card p-4">
+              <div class="text-sm text-gray-400 mb-1">Camera Status</div> <div class="font-semibold text-green-400" id="currentStatus">
+                Online
+              </div>
+            </div>
+              <div class="status-card p-4 col-span-2">
+                <div class="text-sm text-gray-400 mb-1">System Uptime</div>
+                <div class="font-semibold text-gray-300" id="cameraUptime">
+                    Uptime: N/A
+                </div>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <div class="flex items-center gap-2">
+            <div
+              class="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center"
+            >
+              <i class="ri-user-line text-red-500"></i>
+            </div>
+            <h2 class="text-xl font-semibold">Recent Alerts</h2>
+          </div>
+          <div class="bg-[#131824] rounded-lg p-4">
+            <div class="space-y-3" id="alertsContainer">
+              </div>
+          </div>
+        </div>
+      </div>
+      <div class="space-y-6">
+        <div class="flex items-center gap-2">
+          <div
+            class="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center"
+          >
+            <i class="ri-notification-3-fill text-primary"></i>
+          </div>
+          <h2 class="text-xl font-semibold">Notification Settings</h2>
+        </div>
+        <div class="bg-[#131824] rounded-lg overflow-hidden">
+          <div class="notification-section p-5">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center"
+                >
+                  <i class="ri-mail-line text-primary"></i>
+                </div>
+                <div>
+                  <div class="font-medium">Email Notifications</div>
+                  <div class="text-sm text-gray-400">
+                    Receive alerts via email
+                  </div>
+                </div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="emailToggle" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="flex items-center justify-between mt-4">
+              <div class="text-sm text-gray-300" id="userEmailDisplay"><%= userdetails.email %></div>
+              </div>
+          </div>
+          <div class="notification-section p-5">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center"
+                >
+                  <i class="ri-message-2-line text-primary"></i>
+                </div>
+                <div>
+                  <div class="font-medium">SMS Notifications</div>
+                  <div class="text-sm text-gray-400">
+                    Receive alerts via text message
+                  </div>
+                </div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="smsToggle" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="flex items-center justify-between mt-4">
+              <div class="text-sm text-gray-300" id="userPhoneDisplay">
+                <%=userdetails.phonenumber || 'Not set'%>
+              </div>
+              </div>
+          </div>
+          <div class="notification-section p-5">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center"
+                >
+                  <i class="ri-computer-line text-primary"></i>
+                </div>
+                <div>
+                  <div class="font-medium">Web Notifications</div>
+                  <div class="text-sm text-gray-400">
+                    Receive alerts in browser
+                  </div>
+                </div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="webToggle" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="mt-3">
+              <div class="text-sm text-gray-300" id="browserNotificationStatus">
+                </div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-[#131824] rounded-lg overflow-hidden mt-6">
+          <div class="notification-section p-5">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center"
+                >
+                  <i class="ri-time-line text-primary"></i>
+                </div>
+                <div>
+                  <div class="font-medium">Time Range Settings</div>
+                  <div class="text-sm text-gray-400">
+                    Set active monitoring hours
+                  </div>
+                </div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="timeRangeToggle" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="mt-4 space-y-4">
+              <div>
+                <label class="block text-sm text-gray-400 mb-2"
+                  >Start Time</label
+                >
+                <input
+                  type="time"
+                  id="startTime"
+                  class="w-full bg-[#1a202e] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary"
+                  value="00:00"
+                />
+              </div>
+              <div>
+                <label class="block text-sm text-gray-400 mb-2">End Time</label>
+                <input
+                  type="time"
+                  id="endTime"
+                  class="w-full bg-[#1a202e] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary"
+                  value="23:59"
+                />
+              </div>
+              <div class="text-sm text-gray-400" id="timeRangeStatus">
+                Motion detection is currently inactive
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+    </div>
+    <div id="editModal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-lg font-semibold text-white">
+            Edit Contact Information
+          </h3>
+          <button id="closeModal" class="text-gray-400 hover:text-white">
+            <i class="ri-close-line ri-lg"></i>
+          </button>
+        </div>
+        <form id="editForm" class="space-y-4">
+          <div>
+            <label class="block text-sm text-gray-400 mb-2"
+              >Contact Information</label
+            >
+            <input
+              type="text"
+              id="contactInput"
+              class="w-full bg-[#1a202e] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary"
+            />
+          </div>
+          <div class="flex justify-end gap-3 mt-6">
+            <button
+              type="button"
+              id="cancelEdit"
+              class="px-4 py-2 text-sm text-gray-400 hover:text-white bg-[#1a202e] rounded-button whitespace-nowrap"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 text-sm bg-primary hover:bg-primary/90 text-white rounded-button whitespace-nowrap"
+            >
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="app-data" data-user-details='<%- JSON.stringify(userdetails || {}) %>'></div>
+
+    <script src="/script.js"></script>
+    </body>
+</html>
