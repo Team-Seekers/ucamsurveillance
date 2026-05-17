@@ -412,50 +412,8 @@ function hideAlert() {
             }
         }
 
-        // Form switching logic
-        const loginForm = document.getElementById('login-form');
-        const signupForm = document.getElementById('signup-form');
-        const loginTab = document.getElementById('login-tab');
-        const signupTab = document.getElementById('signup-tab');
-        const tabIndicator = document.getElementById('tab-indicator');
+        // Forms are handled server-side via EJS and window.location.href
 
-        function switchToLogin() {
-            loginForm.classList.remove('hidden');
-            signupForm.classList.add('hidden');
-            loginTab.classList.add('text-primary', 'border-b-2', 'border-primary');
-            loginTab.classList.remove('text-gray-400');
-            signupTab.classList.remove('text-primary', 'border-b-2', 'border-primary');
-            signupTab.classList.add('text-gray-400');
-            tabIndicator.style.transform = 'translateX(0%)';
-        }
-
-        function switchToSignup() {
-            signupForm.classList.remove('hidden');
-            loginForm.classList.add('hidden');
-            signupTab.classList.add('text-primary', 'border-b-2', 'border-primary');
-            signupTab.classList.remove('text-gray-400');
-            loginTab.classList.remove('text-primary', 'border-b-2', 'border-primary');
-            loginTab.classList.add('text-gray-400');
-            tabIndicator.style.transform = 'translateX(100%)';
-        }
-
-        // Initialize form visibility based on active tab
-        if (document.getElementById('login-tab').classList.contains('text-primary')) {
-            switchToLogin();
-        } else {
-            switchToSignup();
-        }
-
-        // Add click event listeners
-        loginTab.addEventListener('click', (e) => {
-            e.preventDefault();
-            switchToLogin();
-        });
-
-        signupTab.addEventListener('click', (e) => {
-            e.preventDefault();
-            switchToSignup();
-        });
     </script>
 </body>
 </html>
