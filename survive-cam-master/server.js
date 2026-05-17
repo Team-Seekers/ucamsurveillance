@@ -24,21 +24,20 @@ const emailPass = process.env.EMAIL_PASS || "";
 
 // Nodemailer Transporter Configuration with optimizations for reliability
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465, // Changed to 465 for SSL/TLS with Gmail
-  secure: true, // Changed to true for port 465 (SSL)
+  service: "gmail",
   auth: {
     user: emailUser,
     pass: emailPass,
   },
-  pool: true, // Enable connection pooling for better performance
-  maxConnections: 5, // Max number of parallel connections
-  maxMessages: 100, // Max messages to send per connection
-  rateLimit: 10, // Max messages per second
-  timeout: 15000, // Connection timeout in milliseconds (15 seconds)
-  socketTimeout: 30000, // Socket inactivity timeout in milliseconds (30 seconds)
-  logger: false, // Disabled for cleaner logs
-  debug: false, // Disabled for cleaner logs
+  tls: {
+    rejectUnauthorized: false
+  },
+  pool: true, 
+  maxConnections: 5, 
+  maxMessages: 100, 
+  rateLimit: 10, 
+  timeout: 30000, 
+  socketTimeout: 60000, 
 });
 
 // Verify transporter connection on startup

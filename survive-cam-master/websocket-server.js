@@ -35,21 +35,20 @@ const emailUser = process.env.EMAIL_USER || "";
 const emailPass = process.env.EMAIL_PASS || ""; 
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465, 
-  secure: true, 
+  service: "gmail",
   auth: {
     user: emailUser,
     pass: emailPass,
+  },
+  tls: {
+    rejectUnauthorized: false
   },
   pool: true, 
   maxConnections: 5, 
   maxMessages: 100, 
   rateLimit: 10, 
-  timeout: 15000, 
-  socketTimeout: 30000, 
-  logger: false, 
-  debug: false, 
+  timeout: 30000, 
+  socketTimeout: 60000, 
 });
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID || "";
