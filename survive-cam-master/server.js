@@ -16,9 +16,6 @@ const http = require("http");
 // Define port number, ideally from environment variable
 const port = process.env.PORT || 3000;
 
-// Define port number, ideally from environment variable
-const port = process.env.PORT || 3000;
-
 // --- Email Configuration ---
 // IMPORTANT: Use environment variables for production!
 // Ensure your Gmail account allows "App Passwords" if 2FA is on.
