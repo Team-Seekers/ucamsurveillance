@@ -428,7 +428,7 @@
       </div>
     </div>
 
-    <div id="app-data" data-user-details='<%- JSON.stringify(userdetails || {}) %>'></div>
+    <div id="app-data" data-user-details='<%- JSON.stringify(userdetails || {}) %>' data-ws-url='<%- process.env.RENDER_WS_URL || "" %>'></div>
 
     <script src="/script.js"></script>
     </body>

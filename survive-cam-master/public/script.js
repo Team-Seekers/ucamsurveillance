@@ -42,21 +42,33 @@ document.addEventListener("DOMContentLoaded", () => {
   let startTime = document.getElementById("startTime")?.value || "00:00";
   let endTime = document.getElementById("endTime")?.value || "23:59";
 
-  // --- NEW: Read userdetails from data attribute ---
+  // --- NEW: Read userdetails and WS URL from data attribute ---
   let initialUserDetails = null;
+  let renderWsUrl = "";
   const appDataElement = document.getElementById("app-data");
-  if (appDataElement && appDataElement.dataset.userDetails) {
-    try {
-      initialUserDetails = JSON.parse(appDataElement.dataset.userDetails);
-      console.log(
-        "Initial user details loaded from data attribute:",
-        initialUserDetails
-      );
-    } catch (e) {
-      console.error("Error parsing user details from data attribute:", e);
-      showToast("Error loading user data.", "error");
+  if (appDataElement) {
+    if (appDataElement.dataset.userDetails) {
+      try {
+        initialUserDetails = JSON.parse(appDataElement.dataset.userDetails);
+        console.log("Initial user details loaded from data attribute:", initialUserDetails);
+      } catch (e) {
+        console.error("Error parsing user details from data attribute:", e);
+        showToast("Error loading user data.", "error");
+      }
+    }
+    if (appDataElement.dataset.wsUrl) {
+      renderWsUrl = appDataElement.dataset.wsUrl;
+      console.log("Render WS URL loaded from data attribute:", renderWsUrl);
     }
   }
+
+  // Derive HTTP API base URL from WS URL if it exists
+  const getApiBaseUrl = () => {
+    if (renderWsUrl) {
+      return renderWsUrl.replace("wss://", "https://").replace("ws://", "http://");
+    }
+    return "";
+  };
 
   let lastAlertUpdateTime = 0; // Add this at the top with other state variables
 
@@ -129,8 +141,13 @@ document.addEventListener("DOMContentLoaded", () => {
   function connectWebSocket() {
     console.log("[connectWebSocket] Attempting connection...");
     try {
-      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${protocol}//${window.location.hostname}:${port}`;
+      let protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      let wsUrl = `${protocol}//${window.location.hostname}:${port}`;
+      
+      if (renderWsUrl) {
+          wsUrl = renderWsUrl;
+      }
+      
       console.log("Attempting to connect to WebSocket at:", wsUrl);
 
       websocket = new WebSocket(wsUrl);
@@ -611,7 +628,8 @@ document.addEventListener("DOMContentLoaded", () => {
   async function fetchNotificationPreferences() {
     console.log("[fetchNotificationPreferences] Fetching preferences...");
     try {
-      const response = await fetch("/api/notification-preferences");
+      const apiBase = getApiBaseUrl();
+      const response = await fetch(`${apiBase}/api/notification-preferences`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -702,7 +720,8 @@ document.addEventListener("DOMContentLoaded", () => {
       `[updateNotificationSetting] Sending update for ${type} to ${toggleElement.checked}`
     );
     try {
-      const response = await fetch("/api/update-notifications", {
+      const apiBase = getApiBaseUrl();
+      const response = await fetch(`${apiBase}/api/update-notifications`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
