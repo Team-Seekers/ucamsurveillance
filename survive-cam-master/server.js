@@ -768,6 +768,16 @@ async function sendAdminNotification(userDetails) {
         "Admin email authentication or recipient error. Check credentials or admin email address."
       );
     }
+    }
     return false;
   }
 }
+
+// Start server locally or export for Vercel
+if (process.env.NODE_ENV !== "production") {
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+}
+
+module.exports = app;
